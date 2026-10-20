@@ -1,105 +1,162 @@
-function Konyv(cim, szerzo, kiadasiEv, oldalszam, kolcsonozve) {
+const kategoriak = ["Regény", "Sci-fi", "Történelmi", "Fantasy"];
+const konyvek = [
+    new Konyv("Egri csillagok", "Gárdonyi Géza", 1901, 650, "Történelmi"),
+    new Konyv("A nagy Gatsby", "F. Scott Fitzgerald", 1925, 180, "Regény"),
+    new Konyv("A kis herceg", "Antoine de Saint-Exupéry", 1943, 96, "Fantasy"),
+    new Konyv("A Gyűrűk Ura: A Gyűrű Szövetsége", "J.R.R. Tolkien", 1954, 480, "Fantasy")
+];
+
+const konyvTablazatMegjelenites = document.getElementById("konyvTablazatMegjelenites");
+const konyvHibaUzenet = document.getElementById("konyvHibaUzenet");
+const konyvEredmeny = document.getElementById("konyvEredmeny");
+
+let kivalasztottKategoria = "Mind";
+let aktualisNezet = "osszes";
+
+function Konyv(cim, szerzo, kiadasiEv, oldalszam, kategoria = "Regény") {
     this.cim = cim;
     this.szerzo = szerzo;
     this.kiadasiEv = Number(kiadasiEv);
     this.oldalszam = Number(oldalszam);
     this.kolcsonozve = false;
-    this.kategoria = "Egyéb";
-    this.kolcsonoz = function () {
-        if (this.kolcsonozve) { return false; }
-        this.kolcsonozve = true;
-        return true;
-    };
-    this.visszahoz = function () {
-        if (!this.kolcsonozve) { return false; }
-        this.kolcsonozve = false;
-        return true;
-    };
+    this.kategoria = kategoriak.includes(kategoria) ? kategoria : "Regény";
+    
+    this.kolcsonoz = function () { if (!this.kolcsonozve) this.kolcsonozve = true; };
+    this.visszahoz = function () { if (this.kolcsonozve) this.kolcsonozve = false; };
 }
 
-const konyvek = [
-    new Konyv("Egri csillagok", "Gárdonyi Géza", 1901, 650),
-    new Konyv("A nagy Gatsby", "F. Scott Fitzgerald", 1925, 180),
-    new Konyv("A kis herceg", "Antoine de Saint-Exupéry", 1943, 96),
-    new Konyv("A Gyűrűk Ura: A Gyűrű Szövetsége", "J.R.R. Tolkien", 1954, 480)
-];
+document.addEventListener("DOMContentLoaded", konyvekMegjelenitese);
 
-const konyvTablazatMegjelenites = document.getElementById("konyvTablazatMegjelenites");
-const konyvHibaUzenet = document.getElementById("konyvHibaUzenet");
-
-function konyvekMegjelenitese(szurtLista = null) {
-    
+function konyvekMegjelenitese() {
     konyvTablazatMegjelenites.replaceChildren();
-    const listaMegjelenitesre = szurtLista || konyvek;
-    
-    listaMegjelenitesre.forEach(function (konyv) {
+    const listaMegjelenitesre = aktualisLista();
+
+    if (listaMegjelenitesre.length === 0) {
         const sor = document.createElement("tr");
-        sor.className = "bg-white border-b border-gray-200 hover:bg-gray-50";
-        
-        [konyv.cim, konyv.szerzo, konyv.kiadasiEv, konyv.oldalszam, konyv.kategoria].forEach(function (adat, index) {
+        sor.innerHTML = `<td colSpan="7" class="px-6 py-4 text-center text-gray-500">Nincs megjeleníthető könyv.</td>`;
+        konyvTablazatMegjelenites.appendChild(sor);
+        return;
+    }
+
+    listaMegjelenitesre.forEach(konyv => {
+        const sor = document.createElement("tr");
+        sor.className = "bg-white border-b border-gray-200 hover:bg-emerald-50";
+
+        [konyv.cim, konyv.szerzo, konyv.kiadasiEv, konyv.oldalszam, konyv.kategoria].forEach((adat, index) => {
             const cella = document.createElement("td");
             cella.className = index === 0 ? "px-6 py-4 font-medium text-gray-900 whitespace-nowrap" : "px-6 py-4";
             cella.textContent = adat;
             sor.appendChild(cella);
         });
 
-        // Állapot
         const allapotCella = document.createElement("td");
-        allapotCella.className = "p-4 " + (konyv.kolcsonozve ? "text-red-600" : "text-green-600");
-        allapotCella.textContent = konyv.kolcsonozve ? "Kölcsönözve" : "Szabad";
+        allapotCella.className = `p-4 ${konyv.kolcsonozve ? "text-red-600" : "text-green-600"}`;
+        allapotCella.textContent = konyv.kolcsonozve ? "Kölcsönözve" : "Kölcsönözhető";
         sor.appendChild(allapotCella);
 
-        // Művelet gomb
         const muveletCella = document.createElement("td");
         muveletCella.className = "p-4";
+
         const gomb = document.createElement("button");
-        gomb.type = "button";
-        gomb.className = "font-medium text-blue-700 hover:underline cursor-pointer";
+        gomb.className = "font-medium text-emerald-800 hover:underline cursor-pointer mr-4";
         gomb.textContent = konyv.kolcsonozve ? "Visszahozás" : "Kölcsönzés";
-        
-        gomb.addEventListener("click", function () {
-            if (konyv.kolcsonozve) {
-                konyv.visszahoz();
-            } else {
-                konyv.kolcsonoz();
-            }
-            if (konyvHibaUzenet) konyvHibaUzenet.textContent = "";
+        gomb.onclick = () => {
+            konyv.kolcsonozve ? konyv.visszahoz() : konyv.kolcsonoz();
+            konyvHibaUzenet.textContent = "";
             konyvekMegjelenitese();
-        });
-        
+        };
         muveletCella.appendChild(gomb);
+
+        const torlesGomb = document.createElement("button");
+        torlesGomb.className = "font-medium text-red-700 hover:underline cursor-pointer";
+        torlesGomb.textContent = "Törlés";
+        torlesGomb.onclick = () => {
+            const index = konyvek.indexOf(konyv);
+            if (index !== -1) konyvek.splice(index, 1);
+            konyvekMegjelenitese();
+        };
+        muveletCella.appendChild(torlesGomb);
+
         sor.appendChild(muveletCella);
         konyvTablazatMegjelenites.appendChild(sor);
     });
 }
 
 function konyvMent(event) {
-    if(event) event.preventDefault();
+    event.preventDefault();
     try {
         const cim = document.getElementById("cim").value.trim();
         const szerzo = document.getElementById("szerzo").value.trim();
         const kiadasiEv = document.getElementById("kiadasiev").valueAsNumber;
         const oldalszam = document.getElementById("oldalszam").valueAsNumber;
+        const kategoria = document.getElementById("kategoria").value;
 
-        if (!cim) { throw new Error("A cím megadása kötelező."); }
-        if (!szerzo) { throw new Error("A szerző megadása kötelező."); }
-        if (!Number.isInteger(kiadasiEv) || kiadasiEv < 1) { throw new Error("Adj meg érvényes kiadási évet."); }
-        if (!Number.isInteger(oldalszam) || oldalszam < 1) { throw new Error("Az oldalszám pozitív egész szám legyen."); }
+        if (!cim || !szerzo || isNaN(kiadasiEv) || kiadasiEv < 1 || isNaN(oldalszam) || oldalszam < 1) {
+            throw new Error("Minden mezőt megfelelően ki kell tölteni.");
+        }
 
-        const ujKonyv = new Konyv(cim, szerzo, kiadasiEv, oldalszam);
-        konyvek.push(ujKonyv);
-        
-        if (konyvHibaUzenet) konyvHibaUzenet.textContent = "";
-        document.querySelector("#konyvForm")?.reset(); // Célzottabb form reset
+        konyvek.push(new Konyv(cim, szerzo, kiadasiEv, oldalszam, kategoria));
+        konyvHibaUzenet.textContent = "";
+        document.getElementById("konyvForm").reset();
+        konyvEredmeny.textContent = "";
         konyvekMegjelenitese();
     } catch (hiba) {
-        if (konyvHibaUzenet) konyvHibaUzenet.textContent = `Hiba: ${hiba.message}`;
+        konyvHibaUzenet.textContent = `Hiba: ${hiba.message}`;
     }
 }
 
 function osszesKonyv() {
-    if (konyvHibaUzenet) konyvHibaUzenet.innerHTML = "";
-    konyvekMegjelenitese(konyvek);
+    aktualisNezet = "osszes";
+    kivalasztottKategoria = "Mind";
+    document.getElementById("kategoriaSzuro").value = "Mind";
+    konyvEredmeny.textContent = "";
+    konyvekMegjelenitese();
 }
 
-konyvekMegjelenitese();
+function szabadKonyvek() {
+    aktualisNezet = "szabad";
+    konyvEredmeny.textContent = "";
+    konyvekMegjelenitese();
+}
+
+function kategoriaSzerintiSzures(kategoria) {
+    kivalasztottKategoria = kategoria;
+    aktualisNezet = "osszes";
+    konyvEredmeny.textContent = "";
+    konyvekMegjelenitese();
+}
+
+function kategoriaSzurtLista() {
+    return kivalasztottKategoria === "Mind" ? konyvek : konyvek.filter(k => k.kategoria === kivalasztottKategoria);
+}
+
+function aktualisLista() {
+    const lista = kategoriaSzurtLista();
+    if (lista.length === 0) return [];
+
+    if (aktualisNezet === "szabad") return lista.filter(k => !k.kolcsonozve);
+    if (aktualisNezet === "legregebbi") return [lista.reduce((l, k) => k.kiadasiEv < l.kiadasiEv ? k : l)];
+    if (aktualisNezet === "legvastagabb") return [lista.reduce((l, k) => k.oldalszam > l.oldalszam ? k : l)];
+    return lista;
+}
+
+function legregebbiKonyv() {
+    aktualisNezet = "legregebbi";
+    konyvEredmeny.textContent = kategoriaSzurtLista().length === 0 ? "Nincs könyv a kategóriában." : "";
+    konyvekMegjelenitese();
+}
+
+function legvastagabbKonyv() {
+    aktualisNezet = "legvastagabb";
+    konyvEredmeny.textContent = kategoriaSzurtLista().length === 0 ? "Nincs könyv a kategóriában." : "";
+    konyvekMegjelenitese();
+}
+
+function atlagosOldalszam() {
+    if (konyvek.length === 0) {
+        konyvEredmeny.textContent = "Nincs könyv, az átlag nem számítható ki.";
+        return;
+    }
+    const atlag = konyvek.reduce((osszeg, k) => osszeg + k.oldalszam, 0) / konyvek.length;
+    konyvEredmeny.textContent = `Átlagos oldalszám: ${Number.isInteger(atlag) ? atlag : atlag.toFixed(1).replace(".", ",")} oldal`;
+}
