@@ -45,13 +45,13 @@ function konyvekMegjelenitese() {
         [konyv.cim, konyv.szerzo, konyv.kiadasiEv, konyv.oldalszam, konyv.kategoria].forEach((adat, index) => {
             const cella = document.createElement("td");
             cella.className = index === 0 ? "px-6 py-4 font-medium text-gray-900 whitespace-nowrap" : "px-6 py-4";
-            cella.textContent = adat;
+            cella.innerHTML = adat;
             sor.appendChild(cella);
         });
 
         const allapotCella = document.createElement("td");
         allapotCella.className = `p-4 ${konyv.kolcsonozve ? "text-red-600" : "text-green-600"}`;
-        allapotCella.textContent = konyv.kolcsonozve ? "Kölcsönözve" : "Kölcsönözhető";
+        allapotCella.innerHTML = konyv.kolcsonozve ? "Kölcsönözve" : "Kölcsönözhető";
         sor.appendChild(allapotCella);
 
         const muveletCella = document.createElement("td");
@@ -59,17 +59,17 @@ function konyvekMegjelenitese() {
 
         const gomb = document.createElement("button");
         gomb.className = "font-medium text-emerald-800 hover:underline cursor-pointer mr-4";
-        gomb.textContent = konyv.kolcsonozve ? "Visszahozás" : "Kölcsönzés";
+        gomb.innerHTML = konyv.kolcsonozve ? "Visszahozás" : "Kölcsönzés";
         gomb.onclick = () => {
             konyv.kolcsonozve ? konyv.visszahoz() : konyv.kolcsonoz();
-            konyvHibaUzenet.textContent = "";
+            konyvHibaUzenet.innerHTML = "";
             konyvekMegjelenitese();
         };
         muveletCella.appendChild(gomb);
 
         const torlesGomb = document.createElement("button");
         torlesGomb.className = "font-medium text-red-700 hover:underline cursor-pointer";
-        torlesGomb.textContent = "Törlés";
+        torlesGomb.innerHTML = "Törlés";
         torlesGomb.onclick = () => {
             const index = konyvek.indexOf(konyv);
             if (index !== -1) konyvek.splice(index, 1);
@@ -96,12 +96,12 @@ function konyvMent(event) {
         }
 
         konyvek.push(new Konyv(cim, szerzo, kiadasiEv, oldalszam, kategoria));
-        konyvHibaUzenet.textContent = "";
+        konyvHibaUzenet.innerHTML = "";
         document.getElementById("konyvForm").reset();
-        konyvEredmeny.textContent = "";
+        konyvEredmeny.innerHTML = "";
         konyvekMegjelenitese();
     } catch (hiba) {
-        konyvHibaUzenet.textContent = `Hiba: ${hiba.message}`;
+        konyvHibaUzenet.innerHTML = `Hiba: ${hiba.message}`;
     }
 }
 
@@ -109,20 +109,20 @@ function osszesKonyv() {
     aktualisNezet = "osszes";
     kivalasztottKategoria = "Mind";
     document.getElementById("kategoriaSzuro").value = "Mind";
-    konyvEredmeny.textContent = "";
+    konyvEredmeny.innerHTML = "";
     konyvekMegjelenitese();
 }
 
 function szabadKonyvek() {
     aktualisNezet = "szabad";
-    konyvEredmeny.textContent = "";
+    konyvEredmeny.innerHTML = "";
     konyvekMegjelenitese();
 }
 
 function kategoriaSzerintiSzures(kategoria) {
     kivalasztottKategoria = kategoria;
     aktualisNezet = "osszes";
-    konyvEredmeny.textContent = "";
+    konyvEredmeny.innerHTML = "";
     konyvekMegjelenitese();
 }
 
@@ -142,21 +142,22 @@ function aktualisLista() {
 
 function legregebbiKonyv() {
     aktualisNezet = "legregebbi";
-    konyvEredmeny.textContent = kategoriaSzurtLista().length === 0 ? "Nincs könyv a kategóriában." : "";
+    konyvEredmeny.innerHTML = kategoriaSzurtLista().length === 0 ? "Nincs könyv a kategóriában." : "";
     konyvekMegjelenitese();
 }
 
 function legvastagabbKonyv() {
     aktualisNezet = "legvastagabb";
-    konyvEredmeny.textContent = kategoriaSzurtLista().length === 0 ? "Nincs könyv a kategóriában." : "";
+    konyvEredmeny.innerHTML = kategoriaSzurtLista().length === 0 ? "Nincs könyv a kategóriában." : "";
     konyvekMegjelenitese();
 }
 
 function atlagosOldalszam() {
+    const lista = kategoriaSzurtLista();
     if (konyvek.length === 0) {
-        konyvEredmeny.textContent = "Nincs könyv, az átlag nem számítható ki.";
+        konyvEredmeny.innerHTML = "Nincs könyv, az átlag nem számítható ki.";
         return;
     }
-    const atlag = konyvek.reduce((osszeg, k) => osszeg + k.oldalszam, 0) / konyvek.length;
-    konyvEredmeny.textContent = `Átlagos oldalszám: ${Number.isInteger(atlag) ? atlag : atlag.toFixed(1).replace(".", ",")} oldal`;
+    const atlag = lista.reduce((osszeg, k) => osszeg + k.oldalszam, 0) / lista.length;
+    konyvEredmeny.innerHTML = `Átlagos oldalszám: ${Number.isInteger(atlag) ? atlag : atlag.toFixed(1).replace(".", ",")} oldal`;
 }
