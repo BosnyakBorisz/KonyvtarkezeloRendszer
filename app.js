@@ -13,7 +13,7 @@ const konyvEredmeny = document.getElementById("konyvEredmeny");
 let kivalasztottKategoria = "Mind";
 let aktualisNezet = "osszes";
 
-function Konyv(cim, szerzo, kiadasiEv, oldalszam, kategoria = "Regény") {
+function Konyv(cim, szerzo, kiadasiEv, oldalszam, kategoria) {
     this.cim = cim;
     this.szerzo = szerzo;
     this.kiadasiEv = Number(kiadasiEv);
